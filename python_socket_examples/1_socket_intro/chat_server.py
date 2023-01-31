@@ -17,3 +17,20 @@ print("Server is running...\n")
 client_socket, client_address = server_socket.accept()
 client_socket.send("You are connected to the server...\n".encode(ENCODER))
 
+# send/receive messages
+while True:
+    # receive info from the client
+    message = client_socket.recv(BYTE_SIZE).decode(ENCODER)
+
+    # quit if the client socket wants to quit, else display the message
+    if message.lower() == "quit":
+        client_socket.send("quit".encode(ENCODER))
+        print("\nEnding the chat...goodbye!")
+        break
+    else:
+        print(f"\n{message}\n")
+        message = input("Message: ")
+        client_socket.send(message.encode(ENCODER))
+
+# close the socket
+server_socket.close()
