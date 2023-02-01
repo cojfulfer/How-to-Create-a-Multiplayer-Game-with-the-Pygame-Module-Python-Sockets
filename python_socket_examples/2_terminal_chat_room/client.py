@@ -11,9 +11,13 @@ BYTE_SIZE = 1024
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((DEST_IP, DEST_PORT))
 
+
 def send_message():
     "Send a message to the server to be broadcast"
-    pass
+    while True:
+        message = input("")
+        client_socket.send(message.encode(ENCODER))
+
 
 def receive_message():
     "Receive an incoming message from the server"
@@ -35,6 +39,10 @@ def receive_message():
             break
 
 
-# start the client
-receive_message()
+# create threads to continuously send & receive messages
+receive_thread = threading.Thread(target=receive_message)
+send_thread = threading.Thread(target=send_message)
 
+# start the client
+receive_thread.start()
+send_thread.start()
