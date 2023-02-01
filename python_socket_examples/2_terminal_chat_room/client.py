@@ -3,6 +3,7 @@ import socket, threading
 
 # define constants to be used
 DEST_IP = socket.gethostbyname(socket.gethostname())
+# DEST_IP = "192.168.1.247"
 DEST_PORT = 12345
 ENCODER = "utf-8"
 BYTE_SIZE = 1024

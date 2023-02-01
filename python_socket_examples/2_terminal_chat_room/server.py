@@ -24,7 +24,7 @@ def broadcast_message(message):
         client_socket.send(message)
 
 
-def receive_message(client_socket):
+def receive_message(client_socket, client_address): # I added 'client_address'
     '''Receive an incoming message from a specific client & forward the message to be broadcast'''
     while True:
         try:
@@ -34,7 +34,7 @@ def receive_message(client_socket):
 
             # receive message from the client
             message = client_socket.recv(BYTE_SIZE).decode(ENCODER)
-            message = f"{name}: {message}".encode(ENCODER)
+            message = f"\033[1;92m\t{name}: {message}\033[0m".encode(ENCODER) # bright green, bolded message tabbed in
             broadcast_message(message)
         except:
             # find the index of the client socket in our list
@@ -50,7 +50,8 @@ def receive_message(client_socket):
             client_socket.close()
 
             # broadcast that the client has left the chat
-            broadcast_message(f"{name} has left the chat!".encode(ENCODER))
+            broadcast_message(f"\033[5;91m\t{name} has left the chat!\033[0m".encode(ENCODER)) # bright red, blinking message tabbed in
+            print(f"{client_address} disconnected") # I added this
             break
 
 
@@ -72,16 +73,18 @@ def connect_client():
         # update the server, individual client, & ALL clients
         print(f"Name of new client is {client_name}\n") # server
         client_socket.send(f"{client_name}, you have connected to the server!".encode(ENCODER)) # individual client
-        broadcast_message(f"{client_name} has joined the chat!".encode(ENCODER)) # all clients
+        broadcast_message(f"\n{client_name} has joined the chat!".encode(ENCODER)) # all clients # I added the '\n'
 
         # now that a new client has connected, start a thread
-        receive_thread = threading.Thread(target=receive_message, args=(client_socket,))
+        receive_thread = threading.Thread(target=receive_message, args=(client_socket, client_address,)) # I added 'client_address'
         receive_thread.start()
 
 
 # start the server
 print("Server is listening for incoming connections...")
 connect_client()
+
+# I don't understand why the below code wouldn't be more efficient...
 # connect_thread = threading.thread(target=connect_client)
 # connect_thread.start()
 
