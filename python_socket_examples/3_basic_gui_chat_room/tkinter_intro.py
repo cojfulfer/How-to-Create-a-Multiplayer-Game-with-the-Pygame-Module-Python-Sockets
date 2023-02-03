@@ -1,6 +1,6 @@
 # Tkinter introduction
-import tkinter
-from tkinter import BOTH, StringVar
+import tkinter # shouldn't this import everything within tkinter???
+from tkinter import BOTH, StringVar, END
 
 # define window
 root = tkinter.Tk()
@@ -16,6 +16,14 @@ output_color = "#dee7e7" # R:222, G:231, B:231 (light grayish cyan)
 root.config(bg=root_color)
 
 # define functions
+def send_message():
+    "Send the user's message to the output frame"
+    message_label = tkinter.Label(output_frame, text=message_entry.get(), fg=text_color.get(), bg=output_color, font=("Helvetica", 12))
+    message_label.pack()
+
+    # clear the entry field for the next message
+    message_entry.delete(0, END)
+
 
 
 # define GUI layout
@@ -27,8 +35,8 @@ input_frame.pack(pady=10)
 output_frame.pack(padx=10, pady=(0,10), fill=BOTH, expand=True)
 
 # define widgets (that are placed onto the frames)
-message_entry = tkinter.Entry(input_frame, text="Enter a message", width=30)
-send_button = tkinter.Button(input_frame, text="Send")
+message_entry = tkinter.Entry(input_frame, text="Enter a message", width=25, font=("Helvetica", 12)) # I don't see the "Enter a messsage" text
+send_button = tkinter.Button(input_frame, text="Send", bg=output_color, command=send_message)
 # place these widgets onto the input frame via the grid system
 message_entry.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
 send_button.grid(row=0, column=3, rowspan=2, padx=10, pady=10) # did not include "ipadx=20, ipady=5" as the button gets cut off
