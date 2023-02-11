@@ -80,7 +80,7 @@ def verify_connection(name):
             # change button states
             connect_button.config(state=DISABLED)
             disconnect_button.config(state=NORMAL) # 'NORMAL' means 'ENABLED'
-            send_button.config(state=NORMAL) # 'NORMAL' means 'ENABLED'
+            send_button.config(state=NORMAL)
             # change entry states
             name_entry.config(state=DISABLED)
             ip_entry.config(state=DISABLED)
@@ -103,17 +103,47 @@ def verify_connection(name):
 
 def disconnect():
     "Disconnect from the server"
-    pass
+    global client_socket
+
+    # close the socket
+    client_socket.close()
+
+    # change button states
+    connect_button.config(state=NORMAL) # 'NORMAL' means 'ENABLED'
+    disconnect_button.config(state=DISABLED)
+    send_button.config(state=DISABLED)
+    # change entry states
+    name_entry.config(state=NORMAL)
+    ip_entry.config(state=NORMAL)
+    port_entry.config(state=NORMAL)
 
 
 def send_message():
     "Send a message to the server to be broadcast"
-    pass
+    global client_socket
+
+    # send the message to the server
+    message = input_entry.get() # what the user enters into the input entry as a string
+    client_socket.send(message.encode(ENCODER))
+
+    # clear the input entry
+    input_entry.delete(0, END)
 
 
 def receive_message():
     "Receive an incoming message from the server"
-    pass
+    global client_socket
+
+    while True:
+        try:
+            # receive an incoming message from the server
+            message = client_socket.recv(BYTE_SIZE).decode(ENCODER)
+            my_listbox.insert(0, message)
+        except:
+            # an error occured, disconnect from the server
+            my_listbox.insert(0, "Closing the connection. Goodbye...")
+            disconnect()
+            break
 
 
 # define GUI layout
@@ -136,7 +166,7 @@ ip_entry = tkinter.Entry(info_frame, borderwidth=3, font=my_font)
 port_label = tkinter.Label(info_frame, text="Port Num:", font=my_font, fg=light_green, bg=black)
 port_entry = tkinter.Entry(info_frame, borderwidth=3, font=my_font, width=10)
 connect_button = tkinter.Button(info_frame, text="Connect", font=my_font, bg=light_green, borderwidth=5, width=10, command=connect) # when button is pressed, 'connect()' function is called # my button is white instead of light green...
-disconnect_button = tkinter.Button(info_frame, text="Disconnect", font=my_font, bg=light_green, borderwidth=5, width=10, state=DISABLED) # disable disconnect button until a valid connection has been established # my button is white instead of light green...
+disconnect_button = tkinter.Button(info_frame, text="Disconnect", font=my_font, bg=light_green, borderwidth=5, width=10, state=DISABLED, command=disconnect) # disable disconnect button until a valid connection has been established # when button is pressed, 'disconnect()' function is called # my button is white instead of light green...
 
 # place the widgets onto the info frame via the grid system
 name_label.grid(row=0, column=0, padx=2, pady=10)
@@ -161,7 +191,7 @@ my_scrollbar.grid(row=0, column=1, sticky="NS") # 'sticky="NS"' attribute expand
 
 # input frame layout
 input_entry = tkinter.Entry(input_frame, width=45, borderwidth=3, font=my_font)
-send_button = tkinter.Button(input_frame, text="send", borderwidth=5, width=10, font=my_font, bg=light_green, state=DISABLED) # disable send button until a valid connection has been established # my button is white instead of light green...
+send_button = tkinter.Button(input_frame, text="send", borderwidth=5, width=10, font=my_font, bg=light_green, state=DISABLED, command=send_message) # disable send button until a valid connection has been established # when button is pressed, 'connect()' function is called # my button is white instead of light green...
 
 # place the widgets onto the input frame via the grid system
 input_entry.grid(row=0, column=0, padx=5, pady=5)

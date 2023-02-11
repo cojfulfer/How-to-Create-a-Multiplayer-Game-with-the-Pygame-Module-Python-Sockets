@@ -3,7 +3,7 @@ import socket, threading
 
 # define constants to be used
 HOST_IP = socket.gethostbyname(socket.gethostname())
-HOST_PORT = 12345
+HOST_PORT = 54321
 ENCODER = "utf-8"
 BYTE_SIZE = 1024
 
@@ -34,7 +34,7 @@ def receive_message(client_socket, client_address): # I added 'client_address'
 
             # receive message from the client
             message = client_socket.recv(BYTE_SIZE).decode(ENCODER)
-            message = f"\033[1;92m\t{name}: {message}\033[0m".encode(ENCODER) # bright green, bolded message tabbed in
+            message = f"{name}: {message}".encode(ENCODER) # the message that the client enters into the input entry and sends
             broadcast_message(message)
         except:
             # find the index of the client socket in our list
@@ -50,7 +50,7 @@ def receive_message(client_socket, client_address): # I added 'client_address'
             client_socket.close()
 
             # broadcast that the client has left the chat
-            broadcast_message(f"\033[5;91m\t{name} has left the chat!\033[0m".encode(ENCODER)) # bright red, blinking message tabbed in
+            broadcast_message(f"{name} has left the chat!".encode(ENCODER))
             print(f"{client_address} disconnected") # I added this
             break
 
@@ -73,7 +73,7 @@ def connect_client():
         # update the server, individual client, & ALL clients
         print(f"Name of new client is {client_name}\n") # server
         client_socket.send(f"{client_name}, you have connected to the server!".encode(ENCODER)) # individual client
-        broadcast_message(f"\n{client_name} has joined the chat!".encode(ENCODER)) # all clients # I added the '\n'
+        broadcast_message(f"{client_name} has joined the chat!".encode(ENCODER)) # all clients
 
         # now that a new client has connected, start a thread
         receive_thread = threading.Thread(target=receive_message, args=(client_socket, client_address,)) # I added 'client_address'
