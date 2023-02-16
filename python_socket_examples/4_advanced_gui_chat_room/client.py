@@ -23,38 +23,59 @@ green = "#1fc742"
 blue = "#5dadec"
 purple = "#9c51b6"
 
+
 root.config(bg=black)
 
 
-# define socket constants
-ENCODER = 'utf-8'
-BYTE_SIZE = 1024
+class Connection():
+    "A class to store a connection - a client socket & pertinent information"
+    def __init__(self):
+        pass
 
 
 # define functions
-def connect():
+def connect(connection):
     '''Connect to a server at a given ip/port address'''
     pass
 
 
-def verify_connection(name):
-    '''Verify that the server connection is valid & pass required information'''
+def disconnect(connection):
+    "Disconnect the client from the server"
     pass
 
 
-def disconnect():
-    "Disconnect from the server"
+def gui_start():
+    "Officially start connection by updating GUI"
     pass
 
 
-def send_message():
-    "Send a message to the server to be broadcast"
+def gui_end():
+    "Officially end connection by updating GUI"
     pass
 
 
-def receive_message():
-    "Receive an incoming message from the server"
+def create_message(flag, name, message, color):
+    "Return a message packet to be sent"
     pass
+
+
+def process_message(connection, message_json):
+    "Update the client based on message packet flag"
+    pass
+
+
+def send_message(connection):
+    "Send a message to the server"
+    pass
+
+
+def receive_message(connection):
+    "Receive a message from the server"
+    pass
+
+
+
+
 
 
 # define GUI layout
