@@ -72,19 +72,19 @@ def connect_client(connection):
             # check to see if the client's IP address is banned
             if client_address[0] in connection.banned_ips: # 'client_address' is a tuple consisting of client IP address & port number
                 message_packet = create_message("DISCONNECT", "Admin (private)", "You have been banned...goodbye", light_green) # dictionary
-                message_json = json.dumps(message_packet) # converting dictionary to string representation of dictionary
+                message_json = json.dumps(message_packet)
                 client_socket.send(message_json.encode(connection.encoder)) # encoding string representation of dictionary to bytes obj
 
                 # close the client socket
                 client_socket.close()
             else:
                 # send a message packet to receive client info
-                message_packet = create_message("INFO", "Admin (private)", "Please send your name", light_green) # dictionary
-                message_json = json.dumps(message_packet) # converting dictionary to string representation of dictionary
-                client_socket.send(message_json.encode(connection.encoder)) # encoding string representation of dictionary to bytes obj
+                message_packet = create_message("INFO", "Admin (private)", "Please send your name", light_green) # create message dict
+                message_json = json.dumps(message_packet) # converting dict to str rep of dict; can't convert directly from dict to bytes obj with JSON like with pickle
+                client_socket.send(message_json.encode(connection.encoder)) # encoding str rep of dict to bytes obj
 
                 # wait for confirmation message to be sent verifying the connection
-                message_json = client_socket.recv(connection.byte_size) # encoded bytes obj
+                message_json = client_socket.recv(connection.byte_size) # encoded bytes obj of a str rep of a dict
                 process_message(connection, message_json, client_socket, client_address)
         # break out of loop if any errors
         except:
@@ -106,12 +106,44 @@ def create_message(flag, name, message, color):
 
 def process_message(connection, message_json, client_socket, client_address=(0,0)):
     '''Update server information based on a message packet flag'''
-    pass
+    message_packet = json.loads(message_json) # decode & turn to dict in 1 step!
+    flag = message_packet["flag"]
+    name = message_packet["name"]
+    message = message_packet["message"]
+    color = message_packet["color"]
+
+    if flag == "INFO":
+        # add the new client info to the appropriate lists
+        connection.client_sockets.append(client_socket)
+        connection.client_ips.append(client_address[0]) # adds the client's IP address
+
+        # broadcast the new client joining & update GUI
+        message_packet = create_message("MESSAGE", "Admin (broadcast)", f"{name} has joined the server!", light_green) # creates message dict
+        message_json = json.dumps(message_packet) # converting dict to str rep of dict
+        broadcast_message(connection, message_json.encode(connection.encoder))
+
+        # update server UI with the client's name & IP address
+        client_listbox.insert(END, f"Name: {name}        IP Addr: {client_address[0]}") # add to end of chat history
+
+        # now that a client has been established, start a thread to receive messages
+        receive_thread = threading.Thread(target=receive_message, args=(connection, client_socket,))
+        receive_thread.start()
+
+    elif flag == "MESSAGE"
+        pass
+    elif flag == "DISCONNECT"
+        pass
+    else:
+        # catch for errors
+        history_listbox.insert(0, "Error processing message...") # insert at beginning of chat history
+
+
 
 
 def broadcast_message(connection, message_json):
-    "Send a message to all client sockets connected to the server"
-    pass
+    "Send a message to all client sockets connected to the server...ALL JSON ARE ENCODED"
+    for client_socket in connection.client_sockets:
+        client_socket.send(message_json)
 
 
 def receive_message(connection, client_socket):
@@ -164,7 +196,7 @@ port_entry.grid(row=0, column=1, padx=2, pady=10)
 start_button.grid(row=0, column=2, padx=5, pady=10)
 end_button.grid(row=0, column=3, padx=5, pady=10)
 
-# history frame layout
+# history frame layout to display chat history
 history_scrollbar = tkinter.Scrollbar(history_frame, orient=VERTICAL)
 history_listbox = tkinter.Listbox(history_frame, height=10, width=55, borderwidth=3, font=my_font, bg=black, fg=light_green, yscrollcommand=history_scrollbar.set) # my listbox outline doesn't display like in the tutorial
 # to synchronize the scroll bar & listbox so that the scroll bar changes the vertical view of the listbox
