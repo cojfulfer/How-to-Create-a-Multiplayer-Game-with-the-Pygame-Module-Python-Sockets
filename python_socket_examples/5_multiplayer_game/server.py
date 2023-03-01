@@ -7,7 +7,7 @@ HOST_IP = socket.gethostbyname(socket.gethostname())
 HOST_PORT = 54321
 
 # define pygame constants to be used & ALTERED
-ROOM_SIZE = 400
+ROOM_SIZE = 700 # game window size
 PLAYER_SIZE = 20
 ROUND_TIME = 45
 FPS = 15
@@ -26,17 +26,22 @@ class Connection():
     '''A socket connection class to be used as a server'''
     def __init__(self):
         "Initialization of the Connection class"
-        # self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.server_socket.bind((HOST_IP, HOST_PORT))
-        # self.server_socket.listen()
-        pass
+        self.encoder = 'utf-8'
+        # the server will send a fixed-length header packet indicating the length of the message before sending the message
+        self.header_length = 10 # means messages can be a max of 9,999,999,999 characters
+
+        # create a socket, bind, & listen
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.bind((HOST_IP, HOST_PORT))
+        self.server_socket.listen()
+
 
 
 class Player():
     '''A class to store a connected client's player info'''
     def __init__(self, number):
-    '''Initialization of the Player class'''
-    pass
+        '''Initialization of the Player class'''
+        pass
 
     def set_player_info(self, player_info):
         '''Set the player info to the given info from the client (coordinates & status flags)'''
@@ -51,12 +56,62 @@ class Game():
     '''A class to handle all operations of gameplay'''
     def __init__(self, connection):
         '''Initialization of the Game class'''
-        # client socket, client address = connection.accept()
-        pass
+        self.connection = connection
+        self.player_count = 0
+        self.player_objects = []
+        self.player_sockets = []
+        self.round_time = ROUND_TIME
 
     def connect_players(self):
         '''Connect ANY incoming player to the game'''
-        pass
+        # only accept players if the player count < the total players
+        while self.player_count < TOTAL_PLAYERS:
+            # Accept incoming player socket connections
+            player_socket, player_address = self.connection.server_socket.accept()
+
+            # send the current game config values over to the client by converting the Pygame constant integers to strings & then encode
+            # the header message packet has a fixed length of 10 which holds the header which tells the receiver the length of the incoming message
+            # the header length can be no more than 10
+            header = str(len(str(ROOM_SIZE)))
+            while len(header) < self.connection.header_length: # append white space characters to end of header: "3" -> "3         "
+                header += " "
+            player_socket.send(header.encode(self.connection.encoder)) # encode & send the header message packet
+            player_socket.send(str(ROOM_SIZE).encode(self.connection.encoder)) # encode & send the message (current game config value Pygame constant)
+
+            # header = str(len(str(PLAYER_SIZE)))
+            # while len(header) < self.connection.header_length: # "3" -> "3         "
+            #     header += " "
+            # player_socket.send(header.encode(self.connection.encoder)) # encode & send the header message packet
+            # player_socket.send(str(PLAYER_SIZE).encode(self.connection.encoder)) # encode & send the message (current game config value Pygame constant)
+
+            header = str(len(str(ROUND_TIME)))
+            while len(header) < self.connection.header_length: # "3" -> "3         "
+                header += " "
+            player_socket.send(header.encode(self.connection.encoder)) # encode & send the header message packet
+            player_socket.send(str(ROUND_TIME).encode(self.connection.encoder)) # encode & send the message (current game config value Pygame constant)
+
+            header = str(len(str(FPS)))
+            while len(header) < self.connection.header_length: # "3" -> "3         "
+                header += " "
+            player_socket.send(header.encode(self.connection.encoder)) # encode & send the header message packet
+            player_socket.send(str(FPS).encode(self.connection.encoder)) # encode & send the message (current game config value Pygame constant)
+
+            header = str(len(str(TOTAL_PLAYERS)))
+            while len(header) < self.connection.header_length: # "3" -> "3         "
+                header += " "
+            player_socket.send(header.encode(self.connection.encoder)) # encode & send the header message packet
+            player_socket.send(str(TOTAL_PLAYERS).encode(self.connection.encoder)) # encode & send the message (current game config value Pygame constant)
+
+            # create a new 'Player()' obj for the connected client
+            self.player_count += 1 # increment the num of players
+            player = Player(self.player_count) # pass in the player's num as an attribute
+            self.player_objects.append(player) # add the player to the list of players
+            self.player_sockets.append(player_socket) # add the player socket to the list of player sockets
+            print(f"New player joining from {player_address}...Total players: {self.player_count}")
+
+        # max num of players reached
+        print(f'{TOTAL_PLAYERS} players in game. No longer accepting new players...')
+
 
     def broadcast(self):
         '''Broadcast info to ALL players'''
